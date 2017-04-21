@@ -1,0 +1,83 @@
+{% load staticfiles %}   
+<!DOCTYPE html>  
+<html lang="en-us">  
+    <head>  
+        <meta charset="utf-8">  
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">  
+        <meta name="viewport" content="width=device-width, initial-scale=1">  
+        <title>{% block title %}{% endblock %}</title>  
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+<link rel="stylesheet" type="text/css" href="/static/css/base.css">  
+ <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+<link href="https://fonts.googleapis.com/css?family=Roboto+Condensed" rel="stylesheet">
+<style>
+body{
+    font-family: 'Roboto Condensed', serif;
+    font-size: 16px;
+}
+
+</style>
+        <!--[if lt IE 9]>  
+            <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>  
+            <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>  
+        <![endif]-->  
+    </head>  
+
+    <body>  
+    <div class="bgimage">  
+        <!--Here is the navbar-->  
+        <nav class="navbar navbar-fixed-top" role="navigation">  
+            <div class="container">  
+                <div class="navbar-header">  
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse-basepage">  
+                        <span class="icon-bar"></span>  
+                        <span class="icon-bar"></span>  
+                        <span class="icon-bar"></span>  
+                    </button>  
+                </div>  
+  
+                <div class="collapse navbar-collapse" id="navbar-collapse-basepage">  
+                    <ul class="nav navbar-nav">  
+                        <li id="homepage"><a href="/amazon_web/">Main</a></li>   
+                    </ul>  
+                    <ul class="nav navbar-nav navbar-right">  
+                        {% if user%}
+
+                            <li><p class="navbar-text">Welcome  <span id="base_name">{{ user }}</span></p></li>  
+                            <li><a href="/amazon_web/order/">See Orders</a></li>  
+                            <li><a href="/amazon_web/logout/">Logout</a></li>
+                            <li><a href="/amazon_web/purchase/">Purchase</a></li>                                                        
+                        {% else %}  
+                            <li><a href="/amazon_web/regist/">Register</a></li>  
+                            <li><a href="/amazon_web/login/">Login</a></li>  
+                        {% endif %}  
+                    </ul>  
+                </div>  
+  
+            </div>  
+        </nav>
+         
+        <!-- /nav -->  
+        <!-- header -->  
+        <header class="jumbotron subhead" id="header-base" style="background: transparent;">  
+            <div class="container">  
+                <h3>Amazon</h3>  
+            </div>  
+        </header>  
+        <!-- /.header -->  
+        <!-- main part -->  
+        {% block content %}{% endblock %}  
+        <!-- /.main -->  
+      
+        <!-- footer -->       
+        </footer>  
+        <!-- /.footer-->  
+        <script type="text/javascript">  
+            var act = document.getElementById("{{ active_menu }}");  
+            act.setAttribute("class","active");  
+        </script>  
+    </body>  
+</html>

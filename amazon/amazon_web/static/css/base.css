@@ -1,0 +1,30 @@
+.bgimage {
+  	background-image: url('http://readcereal.com/wp-content/uploads/2013/11/hokkaido21.jpg');
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-size: cover ;
+    background-repeat: repeat;
+}
+
+.center{
+    position:absolute;
+    width:780px;
+    height:650px;
+    left:50%;
+    top:50%;
+    margin-left:-390px;
+    margin-top:-325px;
+}
+
+#outPopUp {
+  position: absolute;
+  width: 300px;
+  height: 200px;
+  z-index: 15;
+  top: 50%;
+  left: 50%;
+  margin: -100px 0 0 -150px;
+  background: red;
+}
