@@ -27,6 +27,7 @@ class product(models.Model):
 
 
 class orders(models.Model):
+
     user = models.ForeignKey(MyUser, on_delete=models.CASCADE,null = True)
     product = models.OneToOneField(product, blank = False)
     count = models.IntegerField(blank = False)

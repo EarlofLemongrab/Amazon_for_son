@@ -129,3 +129,11 @@ def purchase(req):
         
         return  HttpResponseRedirect("/amazon_web/")
     return  render(req,"purchase.html",{})
+
+
+
+def catalog(req,description):
+    description = description
+    p = product.objects.filter(description = description)
+
+    return render(req,"catalog.html",{"products":p})
