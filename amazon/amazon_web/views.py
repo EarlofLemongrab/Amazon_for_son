@@ -18,6 +18,7 @@ import json
 import pprint
 import sys
 import urllib
+import socket
 try:
     # For Python 3.0 and later
     from urllib.error import HTTPError
@@ -31,6 +32,13 @@ except ImportError:
 import json
 # Create your views here.
 #Load index page 
+
+
+HOST = '10.190.98.12'
+PORT = 6666
+
+
+
 def index(req):   
     username=req.session.get('username', '')  
     content = {'user': username}  
@@ -96,6 +104,7 @@ def order(req):
     	print user.name
     	o = orders.objects.filter(user__name = username)
     	us_sta = "no"  
+        print 
     	return render(req,"order.html",{"orders":o,"us_sta":us_sta,"user":user})  
                   
     except:
@@ -106,7 +115,9 @@ def order(req):
 
 
 def purchase(req):
-    username = req.session.get('username','')  
+    username = req.session.get('username','') 
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((HOST, PORT)) 
     if username != '':  
         user = MyUser.objects.get(user__username=username)  
     else:  
@@ -114,10 +125,15 @@ def purchase(req):
     if req.POST:
         description = req.POST.get("description","")
         count = req.POST.get("count","")
+        
         try:
         	p = product.objects.get(description = description)
         	new_order = orders(user = user, product = p,count=count,warehouse=0)
         	new_order.save()
+        	order_data = {'description':description,'count':count,'pid':p.pid,'whnum':0}
+        	order_str = json.dumps(order_data)
+        	s.send(order_str)
+
 
         	
         except:
@@ -125,6 +141,9 @@ def purchase(req):
         	new_product.save()
         	new_order = orders(user = user, product = new_product,count=count,warehouse=0)
         	new_order.save()
+        	order_data = {'description':description,'count':count,'pid':new_product.pid,'whnum':0}
+        	order_str = json.dumps(order_data)
+        	s.send(order_str)
         	
         
         return  HttpResponseRedirect("/amazon_web/")
