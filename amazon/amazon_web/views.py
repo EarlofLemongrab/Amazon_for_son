@@ -34,7 +34,7 @@ import json
 #Load index page 
 
 
-HOST = '10.190.98.12'
+HOST = '10.190.83.150'
 PORT = 6666
 
 
