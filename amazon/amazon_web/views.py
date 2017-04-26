@@ -8,7 +8,7 @@ from django.template import  RequestContext
 from django.http import HttpResponseRedirect  
 from django.contrib.auth.models import User 
 from django.contrib import auth  
-from models import *  
+from .models import *
 from django.contrib.auth.decorators import login_required
 from datetime import datetime
 from django.conf import settings
@@ -45,15 +45,17 @@ def index(req):
     return render_to_response('index.html', content)
 
 #Handles user registration; read in username, password, repassword, email to create MyUser instance and user instance from django auth.
-def regist(req):  
+def register(req):
+    print (req)
     if req.session.get('username', ''):  
          return HttpResponseRedirect('/amazon_web/index.html')  
-    status=""  
+    status=""
+
     if req.POST:  
         username = req.POST.get("username","")  
         if User.objects.filter(username=username):  
             status = "user_exist"  
-        else:  
+        else:
             password=req.POST.get("password","")  
             repassword = req.POST.get("repassword","")  
             if password!=repassword:  
@@ -84,12 +86,12 @@ def login(req):
             status="not_exist_or_passwd_err"  
     return render(req,"login.html",{"status":status}) 
 
+
 #hanles user logout     
 @login_required
 def logout(req):  
     auth.logout(req)  
-    return HttpResponseRedirect('/amazon_web/')  
-
+    return HttpResponseRedirect('/amazon_web/')
 
 
 @login_required
@@ -101,14 +103,13 @@ def order(req):
         user = ''
 
     try:
-    	print user.name
-    	o = orders.objects.filter(user__name = username)
-    	us_sta = "no"  
-        print 
-    	return render(req,"order.html",{"orders":o,"us_sta":us_sta,"user":user})  
+        print(user.name)
+        o = orders.objects.filter(user__name = username)
+        us_sta = "no"
+        return render(req,"order.html",{"orders":o,"us_sta":us_sta,"user":user})
                   
     except:
-    	print "except"  
+        print ("except" )
         us_sta = "yes"        
         return render(req,"order.html",{"us_sta":us_sta,"user":user})
 
@@ -127,23 +128,23 @@ def purchase(req):
         count = req.POST.get("count","")
         
         try:
-        	p = product.objects.get(description = description)
-        	new_order = orders(user = user, product = p,count=count,warehouse=0)
-        	new_order.save()
-        	order_data = {'description':description,'count':count,'pid':p.pid,'whnum':0}
-        	order_str = json.dumps(order_data)
-        	s.send(order_str)
+            p = product.objects.get(description = description)
+            new_order = orders(user = user, product = p,count=count,warehouse=0)
+            new_order.save()
+            order_data = {'description':description,'count':count,'pid':p.pid,'whnum':0}
+            order_str = json.dumps(order_data)
+            s.send(order_str)
 
 
         	
         except:
-        	new_product = product(description=description)
-        	new_product.save()
-        	new_order = orders(user = user, product = new_product,count=count,warehouse=0)
-        	new_order.save()
-        	order_data = {'description':description,'count':count,'pid':new_product.pid,'whnum':0}
-        	order_str = json.dumps(order_data)
-        	s.send(order_str)
+            new_product = product(description=description)
+            new_product.save()
+            new_order = orders(user = user, product = new_product,count=count,warehouse=0)
+            new_order.save()
+            order_data = {'description':description,'count':count,'pid':new_product.pid,'whnum':0}
+            order_str = json.dumps(order_data)
+            s.send(order_str)
         	
         
         return  HttpResponseRedirect("/amazon_web/")
