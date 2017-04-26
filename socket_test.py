@@ -51,39 +51,16 @@ recv_msg = read_message_delimited(sock)
 Recv_Connected(recv_msg)
 
 # Send purchase command
-prod = Product(1, "longDong2", 2)
+prod = Product(20, "test product20", 20)
 prods = [prod, ]
 purch = Purchase(prods, 0)
 purchs = [purch, ]
 command_msg = Commands(purchs, _disconnect=False )
 
 
-# command_str = command_msg.SerializeToString()
-#
-# size = len(command_str)
-# delimiter = protobuf_encoder._VarintBytes(size)
-# sock.send(delimiter)
-# sock.send(command_str)  # send msg
-
 send_msg(sock, command_msg)
 
 rec_msg = read_message_delimited(sock)
 Recv_Responses(rec_msg)
-
-
-command_msg = amazon_pb2.ACommands()
-buy = command_msg.buy.add()
-buy.whnum = 0
-product = buy.things.add()
-product.id = 124
-product.description = "sample products124"
-product.count = 10
-
-send_msg(sock, command_msg)
-
-rec_msg = read_message_delimited(sock)
-Recv_Responses(rec_msg)
-
-
 
 sock.close()
