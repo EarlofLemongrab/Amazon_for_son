@@ -21,8 +21,8 @@ import threading
 import json
 import psycopg2
 
-WH_HOST = '127.0.0.1'
-# WH_HOST = '10.236.48.21'
+#WH_HOST = '127.0.0.1'
+WH_HOST = '10.236.48.21'
 WH_PORT =23456
 
 SELF_HOST = '127.0.0.1'
@@ -120,11 +120,13 @@ if __name__=="__main__":
 	connect_msg = amazon_pb2.AConnect()
 	connect_msg.worldid = 1000
 	send_msg(socket_wh_client, connect_msg)
+	print(socket_wh_client.recv(1024))
 
 	# Send Default simulated speed
 	speed = amazon_pb2.ACommands()
 	speed.simspeed=50000
 	send_msg(socket_wh_client, speed)
+	print(socket_wh_client.recv(1024))
 
 	try:
 		socket_dj_server.bind((SELF_HOST, SELF_PORT))
@@ -132,16 +134,16 @@ if __name__=="__main__":
 		print ("socket_dj bind error:", msg)
 	socket_dj_server.listen(5)
 	_thread.start_new_thread(django_sender, (socket_dj_server,))
-    _thread.start_new_thread(wh_receiver, (socket_wh_client,))
+	_thread.start_new_thread(wh_receiver, (socket_wh_client,))
 
-    while True:
-        mutex.acquire(1)
-        if msg_queue.empty():
-            continue
-        else:
-            msg = msg_queue.get()
-            print ("Sending msg")
-            print (msg.__str__())
-            send_msg(socket_wh_client, msg)
-        mutex.release()
+	while True:
+	    mutex.acquire(1)
+	    if msg_queue.empty():
+	        continue
+	    else:
+	        msg = msg_queue.get()
+	        print ("Sending msg")
+	        print (msg.__str__())
+	        send_msg(socket_wh_client, msg)
+	    mutex.release()
 
