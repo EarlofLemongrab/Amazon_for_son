@@ -1,0 +1,27 @@
+message UAShipRequest {                //UDeliveryLocation
+  required int64 packageid = 1;
+  required int32 whid = 2;
+  required int32 x = 3;
+  required int32 y = 4;
+}
+
+message UAShipResponse {
+  required int64 packageid = 1;
+  required int64 shipid = 2;
+}
+
+message UATrackArrive {                  //UDeliveryMade
+  required int64 packageid = 1;
+  required int32 truckid = 2;
+}
+
+message AmazonCommands {
+   optional UAShipRequest req_ship = 1;
+   optional int64 req_deliver_pid = 2;   //packageid
+   optional bool disconnect = 3;         //after processing/sending replies, close
+}
+
+message UPSResponses {
+    optional UAShipResponse resp_ship = 1;
+    optional UATrackArrive resp_truck = 2;
+}
