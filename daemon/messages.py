@@ -2,7 +2,6 @@ from __future__ import print_function
 import socket               # Import socket module
 import amazon_pb2
 import io
-import mutex
 from random import randint
 from google.protobuf.internal.decoder import _DecodeVarint32
 from google.protobuf.internal.decoder import _DecodeVarint

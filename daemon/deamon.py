@@ -23,7 +23,7 @@ import psycopg2
 
 #WH_HOST = '127.0.0.1'
 WH_HOST = '10.236.48.21'
-WH_PORT =23456
+WH_PORT = 23456
 
 SELF_HOST = '127.0.0.1'
 # SELF_HOST = '10.190.83.150'
