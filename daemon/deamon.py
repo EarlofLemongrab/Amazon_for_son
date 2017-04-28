@@ -29,6 +29,9 @@ SELF_HOST = '127.0.0.1'
 # SELF_HOST = '10.190.83.150'
 SELF_PORT = 6666
 
+UPS_HOST = '127.0.0.1'
+UPS_PORT = 34567
+
 DBhostname = 'localhost'
 DBusername = 'dl208'
 DBpassword = 'longdong'
@@ -36,8 +39,9 @@ DBdatabase = 'amazon'
 
 
 msg_queue = queue.Queue()
-mutex = threading.Lock()
-
+ups_queue = queue.Queue()
+mutex_django = threading.Lock()
+mutex_ups = threading.Lock()
 
 def wh_receiver(socket):
 	print ("Enter WH Receiver")
@@ -69,9 +73,9 @@ def wh_receiver(socket):
 				thing.description = a.things[0].description
 				thing.count = a.things[0].count
 				pack.shipid = randint(1,1000)# should change later
-			mutex.acquire(1)
+			mutex_django.acquire(1)
 			msg_queue.put(command_msg)
-			mutex.release()
+			mutex_django.release()
 
 		for r in ready_list:
 			cur.execute( "UPDATE amazon_web_orders SET ready=TRUE where tracking_num = 'Not Ready'" )
@@ -105,45 +109,63 @@ def django_sender(socket):
 		product.count = int(msg.get('count'))
 
 		#MOVE THIS TO UPS RECEIVER AFTER THEY HAVE T_N
-		
-		mutex.acquire(1)
-		msg_queue.put(command_msg)
-		mutex.release()
 
+		mutex_django.acquire(1)
+		msg_queue.put(command_msg)
+		mutex_django.release()
+
+
+def ups_sender(ups_socket):
+	# get ups_socket output stream
+	pass
+
+def ups_receiver(ups_socket):
+	# get ups_socket input stream
+	pass
 
 if __name__=="__main__":
+	# Create sockets: django, warehouse, UPS
 	socket_dj_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	socket_wh_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	socket_wh_client.connect((WH_HOST, WH_PORT))       #Connect
+	socket_ups_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+	# Build up the connection
+	socket_wh_client.connect((WH_HOST, WH_PORT))  # Connect
+	socket_ups_client.connect((UPS_HOST, UPS_PORT))
 
 	# Connect to warehouse world
 	connect_msg = amazon_pb2.AConnect()
 	connect_msg.worldid = 1000
 	send_msg(socket_wh_client, connect_msg)
-	print(socket_wh_client.recv(1024))
+	Recv_Connected(recv_msg_4B(socket_wh_client))
 
 	# Send Default simulated speed
 	speed = amazon_pb2.ACommands()
-	speed.simspeed=50000
+	speed.simspeed = 50000
 	send_msg(socket_wh_client, speed)
-	print(socket_wh_client.recv(1024))
+	Recv_Responses(recv_msg_4B(socket_wh_client))
 
+	# Bind port for django server socket
 	try:
 		socket_dj_server.bind((SELF_HOST, SELF_PORT))
 	except socket.error as msg:
 		print ("socket_dj bind error:", msg)
 	socket_dj_server.listen(5)
+
+	# Start new threads
 	_thread.start_new_thread(django_sender, (socket_dj_server,))
 	_thread.start_new_thread(wh_receiver, (socket_wh_client,))
+	_thread.start_new_thread(ups_sender, (socket_ups_client,))
+	_thread.start_new_thread(ups_receiver, (socket_ups_client,))
 
 	while True:
-	    mutex.acquire(1)
-	    if msg_queue.empty():
-	        continue
-	    else:
-	        msg = msg_queue.get()
-	        print ("Sending msg")
-	        print (msg.__str__())
-	        send_msg(socket_wh_client, msg)
-	    mutex.release()
+		mutex_django.acquire(1)
+		if msg_queue.empty():
+			continue
+		else:
+			msg = msg_queue.get()
+			print ("Sending msg")
+			print (msg.__str__())
+			send_msg(socket_wh_client, msg)
+		mutex_django.release()
 

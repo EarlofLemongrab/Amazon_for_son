@@ -6,7 +6,7 @@ from random import randint
 from google.protobuf.internal.decoder import _DecodeVarint32
 from google.protobuf.internal.decoder import _DecodeVarint
 from google.protobuf.internal.encoder import _EncodeVarint
-from .deamon import mutex, msg_queue
+from .deamon import mutex_django, msg_queue
 
 def Connect(_worldid):
     connect = amazon_pb2.AConnect()
@@ -39,7 +39,7 @@ def Recv_Connected(recv_msg):
     msg = amazon_pb2.AConnected()
     msg.ParseFromString(recv_msg)
     if (not msg) or (not msg.ListFields()):
-        print("\033[33mrecv_connect is empty\033[0m")
+        print("\033[33mrecv_connect is empty: Connect successfully\033[0m")
     if msg.HasField('error'):
         print("\033[31mError: \033[0m", msg.error)
 
@@ -59,9 +59,9 @@ def Recv_Responses(recv_msg):
         pack.shipid = randint(1,1000)# should change later
         for product in purchaseMore.things:
             print("product: id = ", product.id, " description = ", product.description, " count = ", product.count)
-    mutex.acquire(1)
+    mutex_django.acquire(1)
     msg_queue.put(command_msg)
-    mutex.release()
+    mutex_django.release()
 
     print("Ready List: ")
     for rdy in msg.ready:

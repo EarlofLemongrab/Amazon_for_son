@@ -1,27 +1,35 @@
-message UAShipRequest {                //UDeliveryLocation
-  required int64 packageid = 1;
-  required int32 whid = 2;
-  required int32 x = 3;
-  required int32 y = 4;
+message AProduct {
+  required int64 id = 1;
+  required string description = 2;
+  required int32 count = 3;
 }
 
-message UAShipResponse {
-  required int64 packageid = 1;
-  required int64 shipid = 2;
+message APack {
+  required int32 whnum  = 1;
+  repeated AProduct things = 2;
+  required int64 shipid = 3;
 }
 
-message UATrackArrive {                  //UDeliveryMade
-  required int64 packageid = 1;
-  required int32 truckid = 2;
+message UAShipRequest {             //UDeliveryLocation
+  required APack package = 1;
+  required int32 x = 2;			    //Package delivery location x
+  required int32 y = 3;			    //Package delivery location y
+  optional string upsAccount = 4;	//
+}
+
+message UATrackArrive {             //UDeliveryMade
+  required int32 truckid = 1;
+  required int32 whnum = 2;
+  required int64 shipid  = 3;       //Let amazon know this response for which package
 }
 
 message AmazonCommands {
    optional UAShipRequest req_ship = 1;
-   optional int64 req_deliver_pid = 2;   //packageid
-   optional bool disconnect = 3;         //after processing/sending replies, close
+   optional int32 req_deliver_truckid = 2;   //truck_id
+   optional bool disconnect = 3;             //after processing/sending replies, close
 }
 
 message UPSResponses {
-    optional UAShipResponse resp_ship = 1;
-    optional UATrackArrive resp_truck = 2;
+    optional UATrackArrive resp_truck = 1;
+    optional UATrackDelivered resp_delivered = 2;
 }
