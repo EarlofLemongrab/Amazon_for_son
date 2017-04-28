@@ -57,13 +57,15 @@ def register(req):
             status = "user_exist"  
         else:
             password=req.POST.get("password","")  
-            repassword = req.POST.get("repassword","")  
+            repassword = req.POST.get("repassword","")
+            address_x = req.POST.get("X","0")
+            address_y = req.POST.get("Y","0")  
             if password!=repassword:  
                 status = "re_err"  
             else:  
                 newuser=User.objects.create_user(username=username,password=password)  
                 newuser.save()                               
-                new_myuser = MyUser(user=newuser,UPS=req.POST.get("UPS"),name = username)      
+                new_myuser = MyUser(user=newuser,UPS=req.POST.get("UPS"),name = username,address_y=address_y,address_x=address_x)      
                 new_myuser.save()  
                 status = "success"  
                 return HttpResponseRedirect("/amazon_web/login/")  
@@ -137,10 +139,10 @@ def purchase(req):
         	else:
         		oid = lastest_order.order_id+1
         	print oid
-        	new_order = orders(order_id=oid,user = user, product = p,count=count,warehouse=0)
+        	new_order = orders(order_id=oid,user = user, product = p,count=count,warehouse=0,tracking_num=oid)
         	print new_order.order_id
         	new_order.save()
-        	order_data = {'description':description,'count':count,'pid':p.pid,'whnum':0}
+        	order_data = {'shipid':oid,'description':description,'count':count,'pid':p.pid,'whnum':0,'address_x':user.address_x,'address_y':user.address_y}
         	order_str = json.dumps(order_data)
         	s.send(order_str)
         	
@@ -156,7 +158,7 @@ def purchase(req):
             	oid = lastest_order.order_id+1
             new_order = orders(order_id = oid,user = user, product = new_product,count=count,warehouse=0)
             new_order.save()
-            order_data = {'description':description,'count':count,'pid':new_product.pid,'whnum':0}
+            order_data = {'shipid':oid,'description':description,'count':count,'pid':new_product.pid,'whnum':0,'address_x':user.address_x,'address_y':user.address_y}
             order_str = json.dumps(order_data)
             s.send(order_str)
         	

@@ -10,7 +10,8 @@ class MyUser(models.Model):
     user = models.OneToOneField(User)       
     name = models.CharField(max_length=50)
     UPS = models.CharField(max_length=50)
-
+    address_x = models.IntegerField(default=0)
+    address_y = models.IntegerField(default=0)
     def __unicode__(self):  
         return self.name
 
@@ -38,7 +39,7 @@ class orders(models.Model):
     product = models.ForeignKey(product, blank = False)
     count = models.IntegerField(blank = False)
     warehouse = models.IntegerField(blank = False)
-    tracking_num=models.CharField(max_length=50,default='Not Ready')
+    tracking_num=models.IntegerField(blank = False)
     ready = models.BooleanField(null= False, default=False)
     arrive = models.BooleanField(null= False, default=False)
     load = models.BooleanField(null= False, default=False)
