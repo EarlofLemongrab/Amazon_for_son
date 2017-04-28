@@ -28,10 +28,14 @@
     term = "NULL"
 
     document.getElementById("myButton").onclick = function () {
+        console.log(term)
         location.href = "/amazon_web/catalog/"+term+"/";
     };
     document.getElementById("myButton").onmouseover = function () {
         term = document.getElementById('description').value;
+        console.log(term)
+        term = term.replace(" ","::")
+        console.log(term)
 
         //document.write(term,loc);
     };
