@@ -10,14 +10,16 @@
                 <table class="table table-hover"  id="questions_table">  
                     <thead>
                             <th>Product ID</th> 
-                            <th>Product Description</th>  
+                            <th>Product Description</th>
+                            <th>Product Overall Rate</th>   
                     </thead>  
 
                     <tbody>  
                         {% for p in products %} 
                         <tr> 
                             <td>  {{ p.pid }} </td>
-                            <td>  {{ p.description }} </td>
+                            <td> <a href="/amazon_web/review/?id={{p.pid}}">{{ p.description }} </td>
+                            <td>  {{ p.rate }} </td>
                         </tr> 
 
                         {% endfor %}  

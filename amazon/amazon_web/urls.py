@@ -12,4 +12,6 @@ urlpatterns = [
     url(r'^purchase/$',views.purchase), 
     url(r'^searchproduct/$',TemplateView.as_view(template_name='searchproduct.html')),
     url(r'^catalog/(?P<description>\w+)/$',views.catalog),
+    url(r'^rate/(\d+)/(\d+)/$',views.rate),
+    url(r'^review/$',views.review),
 ]

@@ -1,0 +1,41 @@
+{% extends "base.html" %}  
+{% load staticfiles %}  
+{% block title %}Add{% endblock %}  
+{% block content %}  
+
+<div class="container">  
+    <div class="row">  
+        <div class="col-md-6 col-md-offset-3 col-sm-10 col-sm-offset-1">  
+            <form method="POST" role="form" class="form-horizontal">   
+             {% csrf_token %}  
+
+                <h3 class="form-signin-heading text-center">Rate This Product</h3>    
+                
+                <div class="form-group">  
+                    <label for="id_owner_name" class="col-md-3 control-label">Rating(From 0~5)</label>  
+                    <div class="col-md-9">  
+                        <input type="text" class="form-control" id="id_subtitle" name="rate" autofocus>  
+                    </div>      
+                </div>  
+  
+                <div class="form-group">  
+                    <label for="id_vendor_date" class="col-md-3 control-label">Short Review</label>  
+                    <div class="col-md-9">  
+                      <input type="text" class="form-control" name="review">
+                    </div>  
+                </div>  
+
+                <div class="form-group">  
+                    <div class="col-md-3 col-md-offset-5">  
+                        <button class="btn btn-primary btn-block" type="submit"> Submit </button>  
+                    </div>  
+                </div>                 
+
+
+
+            </form>  
+        </div>  
+    </div>  
+</div>  
+  
+{% endblock %}  

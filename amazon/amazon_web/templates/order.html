@@ -19,8 +19,12 @@
 
                     <tbody>  
                         {% for order in orders %}  
-                        <tr>  
-                            <td> {{ order.product.description }} </td>   
+                        <tr>
+                            {% if order.reviewed == False %}  
+                            <td> <a href="/amazon_web/rate/{{order.order_id}}/{{order.product.pid}}">{{ order.product.description }} </td>
+                            {% else %}
+                            <td>{{ order.product.description }} </td> 
+                            {% endif %}
                             <td>  {{ order.count }} </td>
                             <td>  {{ order.tracking_num }} </td>
 

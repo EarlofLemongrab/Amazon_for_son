@@ -34,7 +34,7 @@ import json
 #Load index page 
 
 
-HOST = '10.190.83.150'
+HOST = 'localhost'
 PORT = 6666
 
 
@@ -128,19 +128,33 @@ def purchase(req):
         count = req.POST.get("count","")
         
         try:
-            p = product.objects.get(description = description)
-            new_order = orders(user = user, product = p,count=count,warehouse=0)
-            new_order.save()
-            order_data = {'description':description,'count':count,'pid':p.pid,'whnum':0}
-            order_str = json.dumps(order_data)
-            s.send(order_str)
-
-
+        	p = product.objects.get(description = description)
+        	print "have in catalog"
+        	lastest_order = orders.objects.all().last()
+        	oid = 0
+        	if lastest_order is None:
+        		oid = 1
+        	else:
+        		oid = lastest_order.order_id+1
+        	print oid
+        	new_order = orders(order_id=oid,user = user, product = p,count=count,warehouse=0)
+        	print new_order.order_id
+        	new_order.save()
+        	order_data = {'description':description,'count':count,'pid':p.pid,'whnum':0}
+        	order_str = json.dumps(order_data)
+        	s.send(order_str)
         	
         except:
-            new_product = product(description=description)
+            new_product = product(description=description,rate_count=0,rate = 0.00)
+            print "not in catalog"
             new_product.save()
-            new_order = orders(user = user, product = new_product,count=count,warehouse=0)
+            lastest_order = orders.objects.all().last()
+            oid = 0
+            if lastest_order is None:
+            	oid = 1
+            else:
+            	oid = lastest_order.order_id+1
+            new_order = orders(order_id = oid,user = user, product = new_product,count=count,warehouse=0)
             new_order.save()
             order_data = {'description':description,'count':count,'pid':new_product.pid,'whnum':0}
             order_str = json.dumps(order_data)
@@ -153,7 +167,46 @@ def purchase(req):
 
 
 def catalog(req,description):
+    print description
     description = description
-    p = product.objects.filter(description = description)
+    p = product.objects.filter(description__contains = description)
 
     return render(req,"catalog.html",{"products":p})
+
+
+
+def rate(req,a,b):
+    username = req.session.get('username','')   	
+    if username != '':  
+        user = MyUser.objects.get(user__username=username)  
+    else:  
+        user = ''
+    pid = b
+    oid = a
+    if req.POST:
+    	p = product.objects.get(pk = pid)
+    	original_rate = p.rate
+    	original_rate_history = p.rate_count
+    	customer_rate = req.POST.get("rate","0")
+    	new_rate = (original_rate*original_rate_history+int(customer_rate))/(original_rate_history+1)
+    	p.rate = new_rate
+    	p.rate_count=p.rate_count+1
+    	p.save()
+    	o = orders.objects.get(order_id = oid)
+    	o.reviewed = True;
+    	o.save()
+    	rev = req.POST.get("review","")
+    	r = usr_review(product = p,review_content = rev,user = username)
+    	r.save()
+    	return  HttpResponseRedirect("/amazon_web/")
+    return render(req,"rate.html",{})
+
+
+def review(req):
+    Id = req.GET.get("id","no id")
+    print "id is "+Id
+    req.session["id"]=Id
+    r = usr_review.objects.filter(product__pid = Id)
+    return render(req,"review.html",{"reviews":r})
+
+
