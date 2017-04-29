@@ -27,12 +27,15 @@ from threading import Thread, Lock
 WH_HOST = '10.236.48.21'
 WH_PORT = 23456
 
+
+
+UPS_HOST = '127.0.0.1'
+UPS_PORT = 9010
+
 SELF_HOST = '127.0.0.1'
 # SELF_HOST = '10.190.83.150'
 SELF_PORT = 6666
 
-UPS_HOST = '127.0.0.1'
-UPS_PORT = 45678
 
 DBhostname = 'localhost'
 DBusername = 'dl208'
@@ -78,19 +81,26 @@ def wh_receiver(socket):
 				thing.id = a.things[0].id ##ASSUME buy one kind of item everytime
 				thing.description = a.things[0].description
 				thing.count = a.things[0].count
-				pack.shipid = randint(1,1000)# should change later
+				pack.shipid = randint(1,1000)# SQL:SELECT order_id from orders where product_id = a.things[0].id AND count = a.things[0].count AND warehouse = whnum
 			mutex_django.acquire()
 			msg_queue.put(command_msg)
 			mutex_django.release()
 
 		# for r in ready_list:
-		# 	cur.execute( "UPDATE amazon_web_orders SET ready=TRUE where tracking_num = 'Not Ready'" )
-			# cur.execute("SELECT warehouse from amazon_web_orders where tracking_num = 'Not Ready'")
-
-			# command_msg = amazon_pb2.ACommands();
-			# load = command_msg.loaded.add()
-			# load.whnum = cur.fetchall()[0]
-			# load.truck
+		# 	cur.execute( "UPDATE amazon_web_orders SET ready=TRUE where tracking_num = %d",r)
+		# 	cur.execute("SELECT arrive from amazon_web_orders where tracking_num = %d",r)
+		# 	arrive = cur.fetchall()
+		# 	if len(arrive)!=1:
+		# 		print("tracking_num NOT UNIQUE!")
+		# 		continue;
+		# 	if arrive[0].equals("False"):
+		# 		print("Order "+str(r)+" is not arrived")
+		# 		continue;
+		# 	cur.execute("SELECT warehouse from amazon_web_orders where tracking_num = %d",r)
+		# 	command_msg = amazon_pb2.ACommands();
+		# 	load = command_msg.loaded.add()
+		# 	load.whnum = cur.fetchall()[0]
+		# 	load.truckid = #might need to store truckid in DB
 
 
 
@@ -159,24 +169,28 @@ def ups_receiver(ups_socket):
 		data = ups_socket.recv(1024)
 		if len(data)<=1:
 			continue
-		print ("server receive ups data "+data)
 		response = parse_ups_response(data)
 		truck_arrive = response.resp_truck
 		truck_id = truck_arrive.truckid
 		whnum = truck_arrive.whnum
 		ship_id = truck_arrive.shipid
-		print("daemon receive ups response, truck "+truck_id+" has arrived at warehouse "+whnum+" for order"+ship_id)
+		print("daemon receive ups response, truck "+str(truck_id)+" has arrived at warehouse "+str(whnum)+" for order"+str(ship_id))
 
-		# mutex_django.acquire(1)
-		# msg_queue.put(command_msg)
-		# mutex_django.release()
+
+		#IMPORTANT:FOR TESTING PURPOSE,ASSUE NOW TRUCK COULD GO DELIVER,NEED TO CHECK DB FIRST,THEN SEND LOAD,GOT LOADED
+
+		ups_command = UA_pb2.AmazonCommands()
+		ups_command.req_deliver_truckid = truck_id
+
+		mutex_ups.acquire(1)
+		ups_queue.put(ups_command)
+		mutex_ups.release()
 
 if __name__=="__main__":
 	# Create sockets: django, warehouse, UPS
 	socket_dj_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	socket_wh_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	socket_ups_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
 	# Build up the connection
 	socket_wh_client.connect((WH_HOST, WH_PORT))  # Connect
 	socket_ups_client.connect((UPS_HOST, UPS_PORT))

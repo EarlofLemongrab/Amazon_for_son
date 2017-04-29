@@ -148,21 +148,24 @@ def parse_ups_response(response):
     if(len(response)<=1):
         print ("not value but "+response)
         print ("length is "+str(len(response)))
-        return ""
+        return "";
     print ("could be response len is "+str(len(response)))
-    res = UA_pb2.UPSResponses()
+    n=0
     next_pos, pos = 0, 0
-    next_pos, pos = _DecodeVarint32(response,pos)
-    res.ParseFromString(response[pos:pos + next_pos])
-
+    res = UA_pb2.UPSResponses()
+    while n<len(response):
+        msg_len, new_pos = _DecodeVarint32(response, n)
+        n = new_pos
+        msg_buf = response[n:n+msg_len]
+        n += msg_len
+        res.ParseFromString(msg_buf)
     print ("parse result "+res.__str__())
-    return res
+    return res;
 
 def send_message(s,message):
     print("start send message to ups: "+message.__str__())
     message_str = message.SerializeToString()
     size = len(message_str)
     variant = protobuf_encoder._VarintBytes(size)
-    s.send(variant)
-    s.send(message_str)
+    s.sendall(variant+message_str)
     return;

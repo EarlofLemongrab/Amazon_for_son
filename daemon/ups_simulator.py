@@ -6,8 +6,8 @@ import UA_pb2
 #from google.protobuf.internal.decoder import _DecodeVarint32 as decoder
 from google.protobuf.internal import encoder as protobuf_encoder
 from google.protobuf.internal import decoder as protobuf_decoder
-# from google.protobuf.internal.decoder import _DecodeVarint32 
-# from google.protobuf.internal.encoder import _EncodeVarint 
+from google.protobuf.internal.decoder import _DecodeVarint32 
+from google.protobuf.internal.encoder import _EncodeVarint 
 import struct
 import io
 import sys
@@ -26,7 +26,9 @@ SIMHOST='10.236.48.21'
 SIMPORT=23456
 
 SELFHOST = '127.0.0.1'
-SELFPORT = 45678
+SELFPORT = 9010
+
+
 
 DBhostname = 'localhost'
 DBusername = 'dl208'
@@ -36,67 +38,74 @@ DBdatabase = 'amazon'
 
 msg_queue = queue.Queue()
 mutex = threading.Lock()
+amazon_conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-def send_msg(s,message):
-	message_str = message.SerializeToString()
-	size = len(message_str)
-	variant = protobuf_encoder._VarintBytes(size)
-	s.send(variant)
-	s.send(message_str)
-	return;
 
-# def parse_response(response):
-# 	if(len(response)<=1):
-# 		print "not value but "+response
-# 		print "length is "+str(len(response))
-# 		return "";
-# 	print "could be response len is "+str(len(response))
+def send_message(s,message):
+    print("start send message to amazon_conn: "+message.__str__())
+    message_str = message.SerializeToString()
+    size = len(message_str)
+    variant = protobuf_encoder._VarintBytes(size)
+    s.sendall(variant+message_str)
+    return;
 
-# 	res = UA_pb2.AmazonCommands()
-# 	next_pos, pos = 0, 0
-# 	next_pos, pos = protobuf_decoder._DecodeVarint32(response,pos)
-# 	res.ParseFromString(response[pos:pos + next_pos])
-# 	print "parse result "+res.__str__()
-# 	return res;
+def parse_response(response):
+	if(len(response)<=1):
+		print ("not value but "+response)
+		print ("length is "+str(len(response)))
+		return "";
+	print ("could be response len is "+str(len(response)))
+	n=0
+	next_pos, pos = 0, 0
+	res = UA_pb2.AmazonCommands()
+	while n<len(response):
+		msg_len, new_pos = _DecodeVarint32(response, n)
+		n = new_pos
+		msg_buf = response[n:n+msg_len]
+		n += msg_len
+		res.ParseFromString(msg_buf)
+	print ("parse result "+res.__str__())
+	return res;
 
 
 def amazon_receiver(amazon_socket):
 	print ("Enter amazon Receiver")
-	conn, addr = amazon_socket.accept()
+	global amazon_conn
+	amazon_conn, addr = amazon_socket.accept()
 	while True:
-		print ('Start connecting')
 		
-		data = recv_msg_4B(conn)
+		data = amazon_conn.recv(2048)
 		
-		print("receive data")
 		if len(data)<=1:
 			continue;
-		response = UA_pb2.AmazonCommands()
-		response.ParseFromString(data)
+		print("receive data "+data.__str__())
+		# response = UA_pb2.AmazonCommands()
+		# response.ParseFromString(data)
+		response = parse_response(data)
+		UPS_response = UA_pb2.UPSResponses()
 		print ("UPS receive amazon data"+data.__str__())
 		if response.HasField('req_ship'):
 			ship_req = response.req_ship
 			x = ship_req.x
 			y = ship_req.y
-			ups_account = ship_req.ups_Account
+			ups_account = ship_req.upsAccount
 			package = ship_req.package
 			whnum = package.whnum
 			ship_id = package.shipid
-			print("address is "+x+" "+y)
+			print("address is "+str(x)+" "+str(y))
 			print("ups_Account is "+ups_account)
-			print("pick up at warehouse "+whnum)
+			print("pick up at warehouse "+str(whnum))
 			for p in package.things:
-				print("package has item "+p.description+" with count "+p.count)
-			UPS_response = UA_pb2.UPSResponses()
-			truckarrive = UPSResponses.UATrackArrive.add()
-			truckarrive.truckid = 1;
-			truckarrive.whnum = whnum
-			truckarrive.shipid = ship_id
+				print("package has item "+p.description+" with count "+str(p.count))
+			
+			UPS_response.resp_truck.truckid = 1;
+			UPS_response.resp_truck.whnum = whnum
+			UPS_response.resp_truck.shipid = ship_id
 			mutex.acquire(1)
-			msg_queue.put(UPSResponses)
+			msg_queue.put(UPS_response)
 			mutex.release()
 		if response.HasField('req_deliver_truckid'):
-			print("Sending Truck"+response.req_deliver_truckid+" to deliver")
+			print("Sending Truck"+str(response.req_deliver_truckid)+" to deliver")
 
 		
 
@@ -141,6 +150,7 @@ def amazon_receiver(amazon_socket):
 
 if __name__=="__main__":
 	amazon_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	amazon_socket_client=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	amazon_socket.bind((SELFHOST, SELFPORT))
 	amazon_socket.listen(5)
 
@@ -154,7 +164,7 @@ if __name__=="__main__":
 			msg = msg_queue.get()
 			print ("Sending msg")
 			print (msg.__str__())
-			send_msg(s,msg)
+			send_message(amazon_conn,msg)
 
 
 
