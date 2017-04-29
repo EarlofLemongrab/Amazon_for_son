@@ -20,6 +20,8 @@ import time
 import threading
 import json
 import psycopg2
+import UA_pb2
+from threading import Thread, Lock
 
 #WH_HOST = '127.0.0.1'
 WH_HOST = '10.236.48.21'
@@ -30,7 +32,7 @@ SELF_HOST = '127.0.0.1'
 SELF_PORT = 6666
 
 UPS_HOST = '127.0.0.1'
-UPS_PORT = 34567
+UPS_PORT = 45678
 
 DBhostname = 'localhost'
 DBusername = 'dl208'
@@ -42,6 +44,10 @@ msg_queue = queue.Queue()
 ups_queue = queue.Queue()
 mutex_django = threading.Lock()
 mutex_ups = threading.Lock()
+
+
+
+
 
 def wh_receiver(socket):
 	print ("Enter WH Receiver")
@@ -55,7 +61,7 @@ def wh_receiver(socket):
 		print (data)
 		if len(data)<=1:
 			continue
-		print ("Daemon receive WH data"+data)
+		# print ("Daemon receive WH data"+data)
 		response = parse_response(data)
 
 		arrived_list = response.arrived
@@ -73,12 +79,12 @@ def wh_receiver(socket):
 				thing.description = a.things[0].description
 				thing.count = a.things[0].count
 				pack.shipid = randint(1,1000)# should change later
-			mutex_django.acquire(1)
+			mutex_django.acquire()
 			msg_queue.put(command_msg)
 			mutex_django.release()
 
-		for r in ready_list:
-			cur.execute( "UPDATE amazon_web_orders SET ready=TRUE where tracking_num = 'Not Ready'" )
+		# for r in ready_list:
+		# 	cur.execute( "UPDATE amazon_web_orders SET ready=TRUE where tracking_num = 'Not Ready'" )
 			# cur.execute("SELECT warehouse from amazon_web_orders where tracking_num = 'Not Ready'")
 
 			# command_msg = amazon_pb2.ACommands();
@@ -95,7 +101,7 @@ def django_sender(socket):
 		data = conn.recv(1024)
 		if len(data)<=1:
 			continue
-		print ("server receive django data "+data)
+		# print ("server receive django data "+data)
 		msg = json.loads(data)
 		for key,value in msg.items():
 			print (key)
@@ -108,20 +114,62 @@ def django_sender(socket):
 		product.description = msg.get('description')
 		product.count = int(msg.get('count'))
 
-		#MOVE THIS TO UPS RECEIVER AFTER THEY HAVE T_N
 
-		mutex_django.acquire(1)
+		#Contruct UPS Message
+		ups_command = UA_pb2.AmazonCommands()
+		ship_request = UA_pb2.UAShipRequest()
+		product = ups_command.req_ship.package.things.add()
+		product.id = msg.get('pid')
+		product.description = msg.get('description')
+		product.count = int(msg.get('count'))
+		ups_command.req_ship.package.whnum = msg.get('whnum')
+		ups_command.req_ship.package.shipid = msg.get('shipid')
+		ups_command.req_ship.x = msg.get('address_x')
+		ups_command.req_ship.y = msg.get('address_y')
+		ups_command.req_ship.upsAccount = '123'
+
+
+
+		print("django_sender msg construct finish")
+		print(mutex_ups.acquire())
+		ups_queue.put(ups_command)
+		mutex_ups.release()
+
+		mutex_django.acquire()
 		msg_queue.put(command_msg)
 		mutex_django.release()
 
 
 def ups_sender(ups_socket):
 	# get ups_socket output stream
-	pass
+	while True:
+		mutex_ups.acquire()
+		if ups_queue.empty():
+			mutex_ups.release()
+			continue
+		else:
+			msg = ups_queue.get()
+			print ("Sending msg")
+			send_message(ups_socket, msg)
+			mutex_ups.release()
 
 def ups_receiver(ups_socket):
-	# get ups_socket input stream
-	pass
+	print ("Enter UPS Receiver")
+	while True:
+		data = ups_socket.recv(1024)
+		if len(data)<=1:
+			continue
+		print ("server receive ups data "+data)
+		response = parse_ups_response(data)
+		truck_arrive = response.resp_truck
+		truck_id = truck_arrive.truckid
+		whnum = truck_arrive.whnum
+		ship_id = truck_arrive.shipid
+		print("daemon receive ups response, truck "+truck_id+" has arrived at warehouse "+whnum+" for order"+ship_id)
+
+		# mutex_django.acquire(1)
+		# msg_queue.put(command_msg)
+		# mutex_django.release()
 
 if __name__=="__main__":
 	# Create sockets: django, warehouse, UPS
@@ -159,13 +207,14 @@ if __name__=="__main__":
 	_thread.start_new_thread(ups_receiver, (socket_ups_client,))
 
 	while True:
-		mutex_django.acquire(1)
+		mutex_django.acquire()
 		if msg_queue.empty():
+			mutex_django.release()
 			continue
 		else:
 			msg = msg_queue.get()
 			print ("Sending msg")
 			print (msg.__str__())
 			send_msg(socket_wh_client, msg)
-		mutex_django.release()
+			mutex_django.release()
 

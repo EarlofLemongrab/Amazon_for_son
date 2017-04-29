@@ -2,11 +2,14 @@ from __future__ import print_function
 import socket               # Import socket module
 import amazon_pb2
 import io
+import UA_pb2
 from random import randint
 from google.protobuf.internal.decoder import _DecodeVarint32
 from google.protobuf.internal.decoder import _DecodeVarint
 from google.protobuf.internal.encoder import _EncodeVarint
-from .deamon import mutex_django, msg_queue
+from deamon import mutex_django, msg_queue
+from google.protobuf.internal import encoder as protobuf_encoder
+from google.protobuf.internal import decoder as protobuf_decoder
 
 def Connect(_worldid):
     connect = amazon_pb2.AConnect()
@@ -81,7 +84,7 @@ def Recv_Responses(recv_msg):
             print("\033[32mNot finish\033[0m")
 
 def send_msg(socket, _message):
-    print(_message)
+    print("start send message: "+_message.__str__())
     msgToSend = _message.SerializeToString()
     _EncodeVarint(socket.sendall, len(msgToSend))
     socket.sendall(msgToSend)
@@ -90,7 +93,7 @@ def recv_msg_4B(socket):
     # int length is at most 4 bytes long
     hdr_bytes = socket.recv(4)
     (msg_length, hdr_length) = _DecodeVarint32(hdr_bytes, 0)
-    # print("msg_length = ", msg_length, ", hdr_length = ", hdr_length)
+    print("msg_length = ", msg_length, ", hdr_length = ", hdr_length)
     rsp_buffer = io.BytesIO()
     if hdr_length < 4:
         # print("hdr_length < 4, hdr_length = ", hdr_length)
@@ -139,3 +142,27 @@ def parse_response(response):
 
     print ("parse result "+res.__str__())
     return res
+
+
+def parse_ups_response(response):
+    if(len(response)<=1):
+        print ("not value but "+response)
+        print ("length is "+str(len(response)))
+        return ""
+    print ("could be response len is "+str(len(response)))
+    res = UA_pb2.UPSResponses()
+    next_pos, pos = 0, 0
+    next_pos, pos = _DecodeVarint32(response,pos)
+    res.ParseFromString(response[pos:pos + next_pos])
+
+    print ("parse result "+res.__str__())
+    return res
+
+def send_message(s,message):
+    print("start send message to ups: "+message.__str__())
+    message_str = message.SerializeToString()
+    size = len(message_str)
+    variant = protobuf_encoder._VarintBytes(size)
+    s.send(variant)
+    s.send(message_str)
+    return;

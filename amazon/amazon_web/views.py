@@ -34,7 +34,7 @@ import json
 #Load index page 
 
 
-HOST = 'localhost'
+HOST = '127.0.0.1'
 PORT = 6666
 
 
@@ -156,7 +156,7 @@ def purchase(req):
             	oid = 1
             else:
             	oid = lastest_order.order_id+1
-            new_order = orders(order_id = oid,user = user, product = new_product,count=count,warehouse=0)
+            new_order = orders(order_id = oid,user = user, product = new_product,count=count,warehouse=0,tracking_num=oid)
             new_order.save()
             order_data = {'shipid':oid,'description':description,'count':count,'pid':new_product.pid,'whnum':0,'address_x':user.address_x,'address_y':user.address_y}
             order_str = json.dumps(order_data)

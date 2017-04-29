@@ -1,3 +1,4 @@
+syntax = "proto2";
 message AProduct {
   required int64 id = 1;
   required string description = 2;
@@ -31,5 +32,4 @@ message AmazonCommands {
 
 message UPSResponses {
     optional UATrackArrive resp_truck = 1;
-    optional UATrackDelivered resp_delivered = 2;
 }
