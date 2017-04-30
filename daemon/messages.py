@@ -7,7 +7,7 @@ from random import randint
 from google.protobuf.internal.decoder import _DecodeVarint32
 from google.protobuf.internal.decoder import _DecodeVarint
 from google.protobuf.internal.encoder import _EncodeVarint
-from deamon import mutex_django, msg_queue
+# from deamon import mutex_django
 from google.protobuf.internal import encoder as protobuf_encoder
 from google.protobuf.internal import decoder as protobuf_decoder
 
@@ -46,33 +46,96 @@ def Recv_Connected(recv_msg):
     if msg.HasField('error'):
         print("\033[31mError: \033[0m", msg.error)
 
-def Recv_Responses(recv_msg):
+def Recv_Responses(recv_msg, msg_queue, ups_queue, mutex_django, mutex_ups, connection=None):
+    cur = None
+    if connection is not None:
+        cur = connection.cursor()
     msg = amazon_pb2.AResponses()
     msg.ParseFromString(recv_msg)
     if (not msg) or (not msg.ListFields()):
         print("\033[33mrecv_response is empty\033[0m")
         return
 
-    command_msg = amazon_pb2.ACommands()
-    for purchaseMore in msg.arrived:
-        print("whnum = ", purchaseMore.whnum)
-        pack = command_msg.topack.add()
-        pack.whnum = purchaseMore.whnum
-        pack.things = purchaseMore.things
-        pack.shipid = randint(1,1000)# should change later
-        for product in purchaseMore.things:
-            print("product: id = ", product.id, " description = ", product.description, " count = ", product.count)
-    mutex_django.acquire(1)
-    msg_queue.put(command_msg)
-    mutex_django.release()
+    # receive arrived msg
+    if len(msg.arrived) != 0:
+        command_msg = amazon_pb2.ACommands()
+        for purchaseMore in msg.arrived:
+            print("whnum = ", purchaseMore.whnum)
+            pack = command_msg.topack.add()
+            pack.whnum = purchaseMore.whnum
+            order_id = -1
+            for product in purchaseMore.things:
+                thing = pack.things.add()
+                thing.id = product.id
+                thing.description = product.description
+                thing.count = product.count
+                cur.execute("SELECT order_id from amazon_web_orders where product_id = %s AND count = %s AND warehouse = %s AND purchased = False",(product.id,product.count,purchaseMore.whnum))
+                order_id_list = cur.fetchall()
+                order_id = order_id_list[0]
+                cur.execute("update amazon_web_orders set purchased=TRUE where order_id = %s",order_id)
+                connection.commit()
+                print("purchase update affect row ", cur.rowcount)
 
-    print("Ready List: ")
-    for rdy in msg.ready:
-        print(rdy, end='')
+            # not included in arrived msg, get from database
+            # cannot locate order_id based on returned data, search in database for corresponding orders
+            # SELECT order_id form orders where product_id = a.things[0].id AND count = a.things[0].count AND warehouse = whnum
+            print("product: id = ", product.id, " description = ", product.description, " count = ", product.count)
+            print("create topack command, shipid= ", order_id[0])
+            pack.shipid = order_id[0]# should change later
+
+        mutex_django.acquire(1)
+        msg_queue.put(command_msg)
+        mutex_django.release()
+
+    print("Ready List: ", end='')
+    for rdy in msg.ready:     #ship ids
+        print(rdy, end=', ')
+
+        # set ready bit for ship ids
+        cur.execute("update amazon_web_orders set ready=TRUE where order_id = %s", (rdy,))
+        connection.commit()
+        print("ready update affect row ",cur.rowcount)
+        cur.execute("SELECT arrive,warehouse,truck_id from amazon_web_orders where order_id = %s",(rdy,))
+
+        # In result set (cursor), if truck Arrived, create load message and insert into msq_queue
+        status_list = cur.fetchall()
+        assert(len(status_list)==1)
+        arrive_status = status_list[0][0]
+        if arrive_status==False:
+            continue
+        else:
+            command_msg = amazon_pb2.ACommands()
+            to_load = command_msg.load.add()
+            to_load.whnum = status_list[0][1]
+            to_load.truckid = status_list[0][2]
+            to_load.shipid = rdy
+            print(command_msg.__str__())
+            mutex_django.acquire(1)
+            msg_queue.put(command_msg)
+            mutex_django.release()
+    print('')
+
 
     print("Loaded List: ")
     for load in msg.loaded:
         print(load, end='')
+        # Receive a loaded message, create a to delieve msg into ups queue
+        # TODO: update load
+        cur.execute("update amazon_web_orders set load=TRUE where order_id = %s", (load,))
+        connection.commit()
+
+        # TODO: use shipid to get truckid
+        cur.execute("SELECT truck_id from amazon_web_orders where order_id = %s", (load,))
+        truck_list = cur.fetchall()
+        assert (len(truck_list) == 1)
+        ups_command = UA_pb2.AmazonCommands()
+        ups_command.req_deliver_truckid = truck_list[0][0]
+
+        mutex_ups.acquire()
+        ups_queue.put(ups_command)
+        mutex_ups.release()
+
+
 
     if msg.HasField("error"):
         print("\033[31mError: \033[0m", msg.error)
@@ -148,7 +211,7 @@ def parse_ups_response(response):
     if(len(response)<=1):
         print ("not value but "+response)
         print ("length is "+str(len(response)))
-        return "";
+        return ""
     print ("could be response len is "+str(len(response)))
     n=0
     next_pos, pos = 0, 0
@@ -160,12 +223,12 @@ def parse_ups_response(response):
         n += msg_len
         res.ParseFromString(msg_buf)
     print ("parse result "+res.__str__())
-    return res;
+    return res
 
-def send_message(s,message):
+def send_message_ups(s, message):
     print("start send message to ups: "+message.__str__())
     message_str = message.SerializeToString()
     size = len(message_str)
     variant = protobuf_encoder._VarintBytes(size)
     s.sendall(variant+message_str)
-    return;
+    return

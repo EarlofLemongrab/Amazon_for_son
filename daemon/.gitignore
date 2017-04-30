@@ -1,1 +1,3 @@
 .idea/
+amazon_pb2.pyc deamon.pyc messages.pyc UA_pb2.pyc
+__pycache__/

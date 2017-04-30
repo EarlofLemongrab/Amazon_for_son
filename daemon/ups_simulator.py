@@ -6,7 +6,8 @@ import UA_pb2
 #from google.protobuf.internal.decoder import _DecodeVarint32 as decoder
 from google.protobuf.internal import encoder as protobuf_encoder
 from google.protobuf.internal import decoder as protobuf_decoder
-from google.protobuf.internal.decoder import _DecodeVarint32 
+from google.protobuf.internal.decoder import _DecodeVarint32
+
 from google.protobuf.internal.encoder import _EncodeVarint 
 import struct
 import io
@@ -17,21 +18,20 @@ import _thread
 import time
 import threading
 import json
-import psycopg2
+
 import queue
 from messages import *
 
 
-SIMHOST='10.236.48.21'
+# SIMHOST='10.236.48.21'
+SIMHOST='127.0.0.1'
 SIMPORT=23456
 
 SELFHOST = '127.0.0.1'
-SELFPORT = 9010
-
-
+SELFPORT = 9004
 
 DBhostname = 'localhost'
-DBusername = 'dl208'
+DBusername = 'herbert'
 DBpassword = 'longdong'
 DBdatabase = 'amazon'
 
@@ -47,13 +47,13 @@ def send_message(s,message):
     size = len(message_str)
     variant = protobuf_encoder._VarintBytes(size)
     s.sendall(variant+message_str)
-    return;
+    return
 
 def parse_response(response):
 	if(len(response)<=1):
 		print ("not value but "+response)
 		print ("length is "+str(len(response)))
-		return "";
+		return ""
 	print ("could be response len is "+str(len(response)))
 	n=0
 	next_pos, pos = 0, 0
@@ -65,7 +65,7 @@ def parse_response(response):
 		n += msg_len
 		res.ParseFromString(msg_buf)
 	print ("parse result "+res.__str__())
-	return res;
+	return res
 
 
 def amazon_receiver(amazon_socket):
@@ -77,8 +77,8 @@ def amazon_receiver(amazon_socket):
 		data = amazon_conn.recv(2048)
 		
 		if len(data)<=1:
-			continue;
-		print("receive data "+data.__str__())
+			continue
+		print("receive amazon data "+data.__str__())
 		# response = UA_pb2.AmazonCommands()
 		# response.ParseFromString(data)
 		response = parse_response(data)
@@ -98,7 +98,7 @@ def amazon_receiver(amazon_socket):
 			for p in package.things:
 				print("package has item "+p.description+" with count "+str(p.count))
 			
-			UPS_response.resp_truck.truckid = 1;
+			UPS_response.resp_truck.truckid = 1
 			UPS_response.resp_truck.whnum = whnum
 			UPS_response.resp_truck.shipid = ship_id
 			mutex.acquire(1)
@@ -159,12 +159,12 @@ if __name__=="__main__":
 
 	while True:
 		if msg_queue.empty():
-			continue;
+			continue
 		else:
 			msg = msg_queue.get()
 			print ("Sending msg")
-			print (msg.__str__())
-			send_message(amazon_conn,msg)
+			# print (msg.__str__())
+			send_message(amazon_conn, msg)
 
 
 

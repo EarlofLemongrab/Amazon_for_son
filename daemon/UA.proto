@@ -1,18 +1,18 @@
 syntax = "proto2";
-message AProduct {
+message UAProduct {
   required int64 id = 1;
   required string description = 2;
   required int32 count = 3;
 }
 
-message APack {
+message UAPack {
   required int32 whnum  = 1;
-  repeated AProduct things = 2;
+  repeated UAProduct things = 2;
   required int64 shipid = 3;
 }
 
 message UAShipRequest {             //UDeliveryLocation
-  required APack package = 1;
+  required UAPack package = 1;
   required int32 x = 2;			    //Package delivery location x
   required int32 y = 3;			    //Package delivery location y
   optional string upsAccount = 4;	//

@@ -30,6 +30,11 @@ message UDeliveryLocation {
   required int32 y = 3;
 }
 
+message UGoDeliver {
+  required int32 truckid = 1;
+  repeated UDeliveryLocation packages = 2;
+}
+
 message UCommands {
   repeated UGoDeliver deliveries = 1;
   repeated UGoPickup pickups = 2;

@@ -131,16 +131,16 @@ def purchase(req):
         
         try:
         	p = product.objects.get(description = description)
-        	print "have in catalog"
+        	print ("have in catalog")
         	lastest_order = orders.objects.all().last()
         	oid = 0
         	if lastest_order is None:
         		oid = 1
         	else:
         		oid = lastest_order.order_id+1
-        	print oid
-        	new_order = orders(order_id=oid,user = user, product = p,count=count,warehouse=0,tracking_num=oid)
-        	print new_order.order_id
+        	print (oid)
+        	new_order = orders(order_id=oid,user = user, product = p,count=count,warehouse=0,truck_id=oid)
+        	print (new_order.order_id)
         	new_order.save()
         	order_data = {'shipid':oid,'description':description,'count':count,'pid':p.pid,'whnum':0,'address_x':user.address_x,'address_y':user.address_y}
         	order_str = json.dumps(order_data)
@@ -148,7 +148,7 @@ def purchase(req):
         	
         except:
             new_product = product(description=description,rate_count=0,rate = 0.00)
-            print "not in catalog"
+            print ("not in catalog")
             new_product.save()
             lastest_order = orders.objects.all().last()
             oid = 0
@@ -156,7 +156,7 @@ def purchase(req):
             	oid = 1
             else:
             	oid = lastest_order.order_id+1
-            new_order = orders(order_id = oid,user = user, product = new_product,count=count,warehouse=0,tracking_num=oid)
+            new_order = orders(order_id = oid,user = user, product = new_product,count=count,warehouse=0,truck_id=oid)
             new_order.save()
             order_data = {'shipid':oid,'description':description,'count':count,'pid':new_product.pid,'whnum':0,'address_x':user.address_x,'address_y':user.address_y}
             order_str = json.dumps(order_data)
@@ -169,7 +169,7 @@ def purchase(req):
 
 
 def catalog(req,description):
-    print description
+    print ("descrption = ", description)
     description = description
     p = product.objects.filter(description__contains = description)
 
@@ -206,7 +206,7 @@ def rate(req,a,b):
 
 def review(req):
     Id = req.GET.get("id","no id")
-    print "id is "+Id
+    print ("id is "+ Id)
     req.session["id"]=Id
     r = usr_review.objects.filter(product__pid = Id)
     return render(req,"review.html",{"reviews":r})
