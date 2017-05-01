@@ -1,4 +1,6 @@
+//import "amazon.proto";
 syntax = "proto2";
+
 message UAProduct {
   required int64 id = 1;
   required string description = 2;
@@ -11,25 +13,26 @@ message UAPack {
   required int64 shipid = 3;
 }
 
-message UAShipRequest {             //UDeliveryLocation
+message UAShipRequest {                //UDeliveryLocation
   required UAPack package = 1;
-  required int32 x = 2;			    //Package delivery location x
-  required int32 y = 3;			    //Package delivery location y
-  optional string upsAccount = 4;	//
+  required int32 x = 2;         //Package delivery location x
+  required int32 y = 3;                            //Package delivery location y
+  optional string upsAccount = 4;                          //
 }
 
-message UATrackArrive {             //UDeliveryMade
+message UATruckArrive {                  //UDeliveryMade
   required int32 truckid = 1;
   required int32 whnum = 2;
-  required int64 shipid  = 3;       //Let amazon know this response for which package
+  required int64 shipid  = 3;                 //Let amazon know this response for which package
 }
 
 message AmazonCommands {
    optional UAShipRequest req_ship = 1;
    optional int32 req_deliver_truckid = 2;   //truck_id
-   optional bool disconnect = 3;             //after processing/sending replies, close
+   optional bool disconnect = 3;         //after processing/sending replies, close
 }
 
 message UPSResponses {
-    optional UATrackArrive resp_truck = 1;
+  optional UATruckArrive resp_truck = 1;
+  //optional UATruckDelivered resp_delivered = 2;
 }

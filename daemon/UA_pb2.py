@@ -18,7 +18,8 @@ _sym_db = _symbol_database.Default()
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='UA.proto',
   package='',
-  serialized_pb=_b('\n\x08UA.proto\";\n\tUAProduct\x12\n\n\x02id\x18\x01 \x02(\x03\x12\x13\n\x0b\x64\x65scription\x18\x02 \x02(\t\x12\r\n\x05\x63ount\x18\x03 \x02(\x05\"C\n\x06UAPack\x12\r\n\x05whnum\x18\x01 \x02(\x05\x12\x1a\n\x06things\x18\x02 \x03(\x0b\x32\n.UAProduct\x12\x0e\n\x06shipid\x18\x03 \x02(\x03\"S\n\rUAShipRequest\x12\x18\n\x07package\x18\x01 \x02(\x0b\x32\x07.UAPack\x12\t\n\x01x\x18\x02 \x02(\x05\x12\t\n\x01y\x18\x03 \x02(\x05\x12\x12\n\nupsAccount\x18\x04 \x01(\t\"?\n\rUATrackArrive\x12\x0f\n\x07truckid\x18\x01 \x02(\x05\x12\r\n\x05whnum\x18\x02 \x02(\x05\x12\x0e\n\x06shipid\x18\x03 \x02(\x03\"c\n\x0e\x41mazonCommands\x12 \n\x08req_ship\x18\x01 \x01(\x0b\x32\x0e.UAShipRequest\x12\x1b\n\x13req_deliver_truckid\x18\x02 \x01(\x05\x12\x12\n\ndisconnect\x18\x03 \x01(\x08\"2\n\x0cUPSResponses\x12\"\n\nresp_truck\x18\x01 \x01(\x0b\x32\x0e.UATrackArrive')
+  syntax='proto2',
+  serialized_pb=_b('\n\x08UA.proto\";\n\tUAProduct\x12\n\n\x02id\x18\x01 \x02(\x03\x12\x13\n\x0b\x64\x65scription\x18\x02 \x02(\t\x12\r\n\x05\x63ount\x18\x03 \x02(\x05\"C\n\x06UAPack\x12\r\n\x05whnum\x18\x01 \x02(\x05\x12\x1a\n\x06things\x18\x02 \x03(\x0b\x32\n.UAProduct\x12\x0e\n\x06shipid\x18\x03 \x02(\x03\"S\n\rUAShipRequest\x12\x18\n\x07package\x18\x01 \x02(\x0b\x32\x07.UAPack\x12\t\n\x01x\x18\x02 \x02(\x05\x12\t\n\x01y\x18\x03 \x02(\x05\x12\x12\n\nupsAccount\x18\x04 \x01(\t\"?\n\rUATruckArrive\x12\x0f\n\x07truckid\x18\x01 \x02(\x05\x12\r\n\x05whnum\x18\x02 \x02(\x05\x12\x0e\n\x06shipid\x18\x03 \x02(\x03\"c\n\x0e\x41mazonCommands\x12 \n\x08req_ship\x18\x01 \x01(\x0b\x32\x0e.UAShipRequest\x12\x1b\n\x13req_deliver_truckid\x18\x02 \x01(\x05\x12\x12\n\ndisconnect\x18\x03 \x01(\x08\"2\n\x0cUPSResponses\x12\"\n\nresp_truck\x18\x01 \x01(\x0b\x32\x0e.UATruckArrive')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -61,6 +62,7 @@ _UAPRODUCT = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
+  syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
@@ -105,6 +107,7 @@ _UAPACK = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
+  syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
@@ -156,6 +159,7 @@ _UASHIPREQUEST = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
+  syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
@@ -164,29 +168,29 @@ _UASHIPREQUEST = _descriptor.Descriptor(
 )
 
 
-_UATRACKARRIVE = _descriptor.Descriptor(
-  name='UATrackArrive',
-  full_name='UATrackArrive',
+_UATRUCKARRIVE = _descriptor.Descriptor(
+  name='UATruckArrive',
+  full_name='UATruckArrive',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='truckid', full_name='UATrackArrive.truckid', index=0,
+      name='truckid', full_name='UATruckArrive.truckid', index=0,
       number=1, type=5, cpp_type=1, label=2,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='whnum', full_name='UATrackArrive.whnum', index=1,
+      name='whnum', full_name='UATruckArrive.whnum', index=1,
       number=2, type=5, cpp_type=1, label=2,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='shipid', full_name='UATrackArrive.shipid', index=2,
+      name='shipid', full_name='UATruckArrive.shipid', index=2,
       number=3, type=3, cpp_type=2, label=2,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
@@ -200,6 +204,7 @@ _UATRACKARRIVE = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
+  syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
@@ -244,6 +249,7 @@ _AMAZONCOMMANDS = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
+  syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
@@ -274,6 +280,7 @@ _UPSRESPONSES = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
+  syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
@@ -284,11 +291,11 @@ _UPSRESPONSES = _descriptor.Descriptor(
 _UAPACK.fields_by_name['things'].message_type = _UAPRODUCT
 _UASHIPREQUEST.fields_by_name['package'].message_type = _UAPACK
 _AMAZONCOMMANDS.fields_by_name['req_ship'].message_type = _UASHIPREQUEST
-_UPSRESPONSES.fields_by_name['resp_truck'].message_type = _UATRACKARRIVE
+_UPSRESPONSES.fields_by_name['resp_truck'].message_type = _UATRUCKARRIVE
 DESCRIPTOR.message_types_by_name['UAProduct'] = _UAPRODUCT
 DESCRIPTOR.message_types_by_name['UAPack'] = _UAPACK
 DESCRIPTOR.message_types_by_name['UAShipRequest'] = _UASHIPREQUEST
-DESCRIPTOR.message_types_by_name['UATrackArrive'] = _UATRACKARRIVE
+DESCRIPTOR.message_types_by_name['UATruckArrive'] = _UATRUCKARRIVE
 DESCRIPTOR.message_types_by_name['AmazonCommands'] = _AMAZONCOMMANDS
 DESCRIPTOR.message_types_by_name['UPSResponses'] = _UPSRESPONSES
 
@@ -313,12 +320,12 @@ UAShipRequest = _reflection.GeneratedProtocolMessageType('UAShipRequest', (_mess
   ))
 _sym_db.RegisterMessage(UAShipRequest)
 
-UATrackArrive = _reflection.GeneratedProtocolMessageType('UATrackArrive', (_message.Message,), dict(
-  DESCRIPTOR = _UATRACKARRIVE,
+UATruckArrive = _reflection.GeneratedProtocolMessageType('UATruckArrive', (_message.Message,), dict(
+  DESCRIPTOR = _UATRUCKARRIVE,
   __module__ = 'UA_pb2'
-  # @@protoc_insertion_point(class_scope:UATrackArrive)
+  # @@protoc_insertion_point(class_scope:UATruckArrive)
   ))
-_sym_db.RegisterMessage(UATrackArrive)
+_sym_db.RegisterMessage(UATruckArrive)
 
 AmazonCommands = _reflection.GeneratedProtocolMessageType('AmazonCommands', (_message.Message,), dict(
   DESCRIPTOR = _AMAZONCOMMANDS,

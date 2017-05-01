@@ -19,6 +19,7 @@ import pprint
 import sys
 import urllib
 import socket
+from random import randint
 try:
     # For Python 3.0 and later
     from urllib.error import HTTPError
@@ -120,7 +121,8 @@ def order(req):
 def purchase(req):
     username = req.session.get('username','') 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((HOST, PORT)) 
+    s.connect((HOST, PORT))
+    whnum = 0#randint(0,4) 
     if username != '':  
         user = MyUser.objects.get(user__username=username)  
     else:  
@@ -139,10 +141,10 @@ def purchase(req):
         	else:
         		oid = lastest_order.order_id+1
         	print (oid)
-        	new_order = orders(order_id=oid,user = user, product = p,count=count,warehouse=0,truck_id=oid)
+        	new_order = orders(order_id=oid,user = user, product = p,count=count,warehouse=whnum,truck_id=oid)
         	print (new_order.order_id)
         	new_order.save()
-        	order_data = {'shipid':oid,'description':description,'count':count,'pid':p.pid,'whnum':0,'address_x':user.address_x,'address_y':user.address_y}
+        	order_data = {'shipid':oid,'description':description,'count':count,'pid':p.pid,'whnum':whnum,'address_x':user.address_x,'address_y':user.address_y}
         	order_str = json.dumps(order_data)
         	s.send(order_str)
         	
@@ -156,9 +158,9 @@ def purchase(req):
             	oid = 1
             else:
             	oid = lastest_order.order_id+1
-            new_order = orders(order_id = oid,user = user, product = new_product,count=count,warehouse=0,truck_id=oid)
+            new_order = orders(order_id = oid,user = user, product = new_product,count=count,warehouse=whnum,truck_id=oid)
             new_order.save()
-            order_data = {'shipid':oid,'description':description,'count':count,'pid':new_product.pid,'whnum':0,'address_x':user.address_x,'address_y':user.address_y}
+            order_data = {'shipid':oid,'description':description,'count':count,'pid':new_product.pid,'whnum':whnum,'address_x':user.address_x,'address_y':user.address_y}
             order_str = json.dumps(order_data)
             s.send(order_str)
         	

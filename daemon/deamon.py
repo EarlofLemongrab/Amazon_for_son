@@ -24,14 +24,14 @@ import psycopg2
 import UA_pb2
 from threading import Thread, Lock
 
-WH_HOST = '127.0.0.1'
-# WH_HOST = '10.236.48.21'
+# WH_HOST = '127.0.0.1'
+WH_HOST = '10.236.48.21'
 WH_PORT = 23456
 
 
 
-UPS_HOST = '127.0.0.1'
-UPS_PORT = 9004
+UPS_HOST = 'colab-sbx-pvt-04.oit.duke.edu'
+UPS_PORT = 34567
 
 SELF_HOST = '127.0.0.1'
 # SELF_HOST = '10.190.83.150'
@@ -39,7 +39,7 @@ SELF_PORT = 6666
 
 
 DBhostname = 'localhost'
-DBusername = 'herbert'
+DBusername = 'dl208'
 DBpassword = 'longdong'
 DBdatabase = 'amazon'
 
@@ -178,13 +178,13 @@ if __name__=="__main__":
 
 	# Connect to warehouse world
 	connect_msg = amazon_pb2.AConnect()
-	connect_msg.worldid = 1000
+	connect_msg.worldid = 1007
 	send_msg(socket_wh_client, connect_msg)
 	Recv_Connected(recv_msg_4B(socket_wh_client))
 
 	# Send Default simulated speed
 	speed = amazon_pb2.ACommands()
-	speed.simspeed = 50000
+	speed.simspeed = 10000
 	send_msg(socket_wh_client, speed)
 	Recv_Responses(recv_msg_4B(socket_wh_client), msg_queue, ups_queue, mutex_django, mutex_ups)
 

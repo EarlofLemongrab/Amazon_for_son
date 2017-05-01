@@ -71,6 +71,11 @@ def Recv_Responses(recv_msg, msg_queue, ups_queue, mutex_django, mutex_ups, conn
                 thing.count = product.count
                 cur.execute("SELECT order_id from amazon_web_orders where product_id = %s AND count = %s AND warehouse = %s AND purchased = False",(product.id,product.count,purchaseMore.whnum))
                 order_id_list = cur.fetchall()
+                if (len(order_id_list)<1):
+                    print("product id ",product.id)
+                    print("count ",product.count)
+                    print("warehouse ",purchaseMore.whnum)
+                    print("length ",len(order_id_list))
                 order_id = order_id_list[0]
                 cur.execute("update amazon_web_orders set purchased=TRUE where order_id = %s",order_id)
                 connection.commit()
@@ -213,17 +218,35 @@ def parse_ups_response(response):
         print ("length is "+str(len(response)))
         return ""
     print ("could be response len is "+str(len(response)))
-    n=0
-    next_pos, pos = 0, 0
-    res = UA_pb2.UPSResponses()
-    while n<len(response):
-        msg_len, new_pos = _DecodeVarint32(response, n)
-        n = new_pos
-        msg_buf = response[n:n+msg_len]
-        n += msg_len
-        res.ParseFromString(msg_buf)
-    print ("parse result "+res.__str__())
-    return res
+    message_length, next_pos = _DecodeVarint32(response, 0)
+    print(next_pos)                   
+    amazoncmd = UA_pb2.UPSResponses()
+    amazoncmd.ParseFromString(response[next_pos : next_pos + message_length])  
+    print("Req: ") 
+    print(amazoncmd.__str__())
+
+
+    # print ("could be response len is "+str(len(response)))
+    # message_length, next_pos = _DecodeVarint32(response, 0)
+    # print(next_pos)                   
+    # ups_res = UA_pb2.UPSResponses()
+    # ups_res.ParseFromString(response[next_pos : next_pos + message_length])  
+    # print("Req: ") 
+    # print(ups_res.__str__())
+
+    # n=0
+    # next_pos, pos = 0, 0
+    # res = UA_pb2.UPSResponses()
+    # while n<len(response):
+    #     msg_len, new_pos = _DecodeVarint32(response, n)
+    #     n = new_pos
+    #     msg_buf = response[n:n+msg_len]
+    #     print("msg length ",msg_len)
+    #     print("raw data is ",response)
+    #     n += msg_len
+    #     res.ParseFromString(msg_buf)
+    # print ("parse result "+res.__str__())
+    return amazoncmd
 
 def send_message_ups(s, message):
     print("start send message to ups: "+message.__str__())
